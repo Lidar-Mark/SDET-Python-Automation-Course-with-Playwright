@@ -1,5 +1,5 @@
 def main():
-    print("Hello from playwright-proj!")
+    print("Hello from SDET-Python-Automation-Course-with-Playwright!")
 
 
 if __name__ == "__main__":
