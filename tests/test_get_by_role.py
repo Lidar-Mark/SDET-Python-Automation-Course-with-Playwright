@@ -1,84 +1,114 @@
+import pytest
 from playwright.sync_api import Page, expect
 from utils.logger import get_logger
 
 log = get_logger(__name__)
 
-BASE_URL: str = "https://testautomationpractice.blogspot.com/p/playwrightpractice.html"
+BASE_URL = "https://testautomationpractice.blogspot.com/p/playwrightpractice.html"
 
 
-def test_get_by_role(page: Page):
-    """Verify all ARIA role locators in the #role-locators section."""
-    log.info("Navigating to practice page")
+
+@pytest.fixture
+def page_loaded(page: Page):
     page.goto(BASE_URL)
-    page.wait_for_load_state("domcontentloaded")
+    return page
 
-    section = page.locator("section#role-locators")
-    expect(section).to_be_visible()
-    log.info("Section #role-locators found")
 
-    # -- Buttons --
-    log.info("Testing Primary Action button")
-    primary_action = section.get_by_role("button", name="Primary Action")
-    primary_action.click()
-    expect(primary_action).to_be_visible()
-    expect(primary_action).to_be_enabled()
-    log.info("Primary Action clicked and verified")
+@pytest.fixture
+def role_section(page_loaded: Page):
+    return page_loaded.locator("#role-locators")
 
-    log.info("Testing Toggle Button aria-pressed state")
-    toggle_button = section.get_by_role("button", name="Toggle Button")
-    expect(toggle_button).to_have_attribute("aria-pressed", "false")
-    toggle_button.click()
-    log.info("Toggle Button clicked")
-    # aria-pressed flip not yet implemented on practice site
-    # expect(toggle_button).to_have_attribute("aria-pressed", "true")
 
-    log.info("Testing Div with button role")
-    div_button = section.get_by_role("button", name="Div with button role")
-    expect(div_button).to_be_visible()
-    expect(div_button).to_have_attribute("tabindex", "0")  # non-semantic, must be keyboard accessible
-    log.info("Div button verified")
+def test_primary_action_button(role_section):
+    log.info("Primary Action button test")
 
-    # -- Form Elements --
-    log.info("Testing Username textbox")
-    username = section.get_by_role("textbox", name="Username")
+    btn = role_section.get_by_role("button", name="Primary Action")
+
+    btn.click()
+    expect(btn).to_be_visible()
+    expect(btn).to_be_enabled()
+
+
+def test_toggle_button(role_section):
+    log.info("Toggle button test")
+
+    toggle = role_section.get_by_role("button", name="Toggle Button")
+
+    expect(toggle).to_have_attribute("aria-pressed", "false")
+
+    toggle.click()
+
+    # behavior not implemented on site
+    expect(toggle).to_have_attribute("aria-pressed", "false")
+
+
+def test_div_button(role_section):
+    log.info("Div button test")
+
+    div_btn = role_section.get_by_role("button", name="Div with button role")
+
+    expect(div_btn).to_be_visible()
+    expect(div_btn).to_have_attribute("tabindex", "0")
+
+
+def test_username_input(role_section):
+    log.info("Username input test")
+
+    username = role_section.get_by_role("textbox", name="Username")
+
     username.fill("John Doe")
+
     expect(username).to_have_value("John Doe")
-    log.info("Username filled and verified")
 
-    log.info("Testing Accept Terms checkbox")
-    accept_terms = section.get_by_role("checkbox", name="Accept terms")
-    accept_terms.check()
-    expect(accept_terms).to_be_checked()
-    log.info("Checkbox checked")
-    accept_terms.uncheck()
-    expect(accept_terms).not_to_be_checked()
-    log.info("Checkbox unchecked")
 
-    # -- Navigation --
-    log.info("Testing Navigation links")
-    links = section.get_by_role("link")
-    expect(links).to_have_count(3)
-    expect(links).to_have_text(["Home", "Products", "Contact"])
-    log.info("3 links verified: Home, Products, Contact")
+def test_checkbox(role_section):
+    log.info("Checkbox test")
 
-    home = section.get_by_role("link", name="Home")
+    checkbox = role_section.get_by_role("checkbox", name="Accept terms")
+
+    checkbox.check()
+    expect(checkbox).to_be_checked()
+
+    checkbox.uncheck()
+    expect(checkbox).not_to_be_checked()
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["Home", "Products", "Contact"],
+)
+def test_links_visible(role_section, name):
+    log.info(f"Link visibility test: {name}")
+
+    link = role_section.get_by_role("link", name=name)
+
+    expect(link).to_be_visible()
+
+
+def test_home_link(role_section):
+    log.info("Home link href test")
+
+    home = role_section.get_by_role("link", name="Home")
+
     expect(home).to_have_attribute("href", "#")
     expect(home).to_be_enabled()
-    log.info("Home link href='#' verified")
 
-    log.info("Testing menu items")
-    menu_items = section.get_by_role("menuitem")
-    expect(menu_items).to_have_count(3)
-    expect(menu_items.nth(0)).to_contain_text("Home")
-    expect(menu_items.nth(1)).to_contain_text("Products")
-    expect(menu_items.nth(2)).to_contain_text("Contact")
-    log.info("All 3 menu items verified")
 
-    # -- Alert --
-    log.info("Testing Alert message")
-    alert = section.get_by_role("alert")
+def test_menu_items(role_section):
+    log.info("Menu items test")
+
+    items = role_section.get_by_role("menuitem")
+
+    expect(items).to_have_count(3)
+
+    for i, name in enumerate(["Home", "Products", "Contact"]):
+        expect(items.nth(i)).to_contain_text(name)
+
+
+def test_alert(role_section):
+    log.info("Alert test")
+
+    alert = role_section.get_by_role("alert")
+
     expect(alert).to_be_visible()
     expect(alert).to_contain_text("important alert message")
-    log.info("Alert message verified")
-
-    log.info("✓ All assertions passed")

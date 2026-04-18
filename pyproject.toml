@@ -17,7 +17,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--headed -s -v --slowmo 500"
+addopts = "-v -s --headed"
 log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s | %(levelname)s | %(message)s"
