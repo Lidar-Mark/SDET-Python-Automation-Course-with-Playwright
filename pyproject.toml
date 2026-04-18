@@ -1,10 +1,11 @@
 [project]
-name = "playwright-proj"
+name = "Playwright_Fundamentals"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "playwright>=1.58.0",
     "pytest>=9.0.3",
     "pytest-playwright>=0.7.2",
 ]
@@ -16,4 +17,4 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--headed -s -v"
+addopts = "--headed -s -v --slowmo 500"
